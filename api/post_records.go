@@ -40,12 +40,26 @@ func (a *API) PostRecords(w http.ResponseWriter, r *http.Request) {
 		int(idNumber),
 	)
 
-	if !errors.Is(err, service.ErrRecordDoesNotExist) { // record exists
-		record, err = a.records.UpdateRecord(ctx, int(idNumber), body)
-	} else { // record does not exist
+	if err == nil {
+		// Record exists → update
+		// if the update[key] is null it will delete that key from the record's Map.
+		//
+		data := record.Data
+		for key, value := range body {
+			if value == nil { // deletion update
+				delete(data, key)
+			} else {
+				data[key] = *value
+			}
+		}
+		record.Data = data
+
+		err = a.records.UpdateRecord(ctx, record)
+	} else if errors.Is(err, service.ErrRecordDoesNotExist) {
+		// Record does not exist → create
 
 		// exclude the delete updates
-		recordMap := map[string]string{}
+		recordMap := make(map[string]string)
 		for key, value := range body {
 			if value != nil {
 				recordMap[key] = *value
