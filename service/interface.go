@@ -32,4 +32,8 @@ type RecordService interface {
 	//
 	// UpdateRecord will error if id <= 0 or the record does not exist with that id.
 	UpdateRecord(ctx context.Context, record entity.Record) error
+
+	ListRecordVersions(ctx context.Context, id int) ([]entity.Record, error)
+
+	GetRecordVersion(ctx context.Context, id int, version int) (entity.Record, error)
 }

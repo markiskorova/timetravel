@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/rainbowmga/timetravel/api"
+	apiv1 "github.com/rainbowmga/timetravel/api/v1"
+	apiv2 "github.com/rainbowmga/timetravel/api/v2"
 	"github.com/rainbowmga/timetravel/service"
 )
 
@@ -24,14 +25,24 @@ func main() {
 	service, err := service.NewSqLiteRecordService("records.db")
 	logError(err)
 
-	api := api.NewAPI(&service)
+	//api := apiv1.NewAPI(&service)
 
-	apiRoute := router.PathPrefix("/api/v1").Subrouter()
-	apiRoute.Path("/health").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	v1API := apiv1.NewAPI(&service)
+	v2API := apiv2.NewAPI(&service)
+
+	v1Router := router.PathPrefix("/api/v1").Subrouter()
+	v1Router.Path("/health").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 		logError(err)
 	})
-	api.CreateRoutes(apiRoute)
+	v1API.CreateRoutes(v1Router)
+
+	v2Router := router.PathPrefix("/api/v2").Subrouter()
+	v2Router.Path("/health").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+		logError(err)
+	})
+	v2API.CreateRoutes(v2Router)
 
 	address := "127.0.0.1:8000"
 	srv := &http.Server{

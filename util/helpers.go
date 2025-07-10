@@ -1,4 +1,4 @@
-package api
+package util
 
 import (
 	"encoding/json"
@@ -12,14 +12,14 @@ var (
 )
 
 // logs an error if it's not nil
-func logError(err error) {
+func LogError(err error) {
 	if err != nil {
 		log.Printf("error: %v", err)
 	}
 }
 
 // writeJSON writes the data as json.
-func writeJSON(w http.ResponseWriter, data interface{}, statusCode int) error {
+func WriteJSON(w http.ResponseWriter, data interface{}, statusCode int) error {
 	w.Header().Add("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(statusCode)
 	err := json.NewEncoder(w).Encode(data)
@@ -27,9 +27,9 @@ func writeJSON(w http.ResponseWriter, data interface{}, statusCode int) error {
 }
 
 // writeError writes the message as an error
-func writeError(w http.ResponseWriter, message string, statusCode int) error {
+func WriteError(w http.ResponseWriter, message string, statusCode int) error {
 	log.Printf("response errored: %s", message)
-	return writeJSON(
+	return WriteJSON(
 		w,
 		map[string]string{"error": message},
 		statusCode,

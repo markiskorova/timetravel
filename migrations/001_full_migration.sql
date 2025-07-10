@@ -1,3 +1,7 @@
+-- Rename original table
+ALTER TABLE records RENAME TO old_records;
+
+-- Recreate full schema
 CREATE TABLE IF NOT EXISTS records (
     id INTEGER PRIMARY KEY
 );
@@ -23,3 +27,13 @@ CREATE VIEW IF NOT EXISTS record_latest AS
 SELECT *
 FROM record_history
 WHERE is_latest = TRUE;
+
+-- Migrate data
+INSERT INTO records (id)
+SELECT id FROM old_records;
+
+INSERT INTO record_history (record_id, version, data, is_latest)
+SELECT id, 1, data, TRUE FROM old_records;
+
+-- Drop the old table
+DROP TABLE old_records;

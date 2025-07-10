@@ -1,4 +1,4 @@
-package api
+package apiv1
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rainbowmga/timetravel/entity"
 	"github.com/rainbowmga/timetravel/service"
+	"github.com/rainbowmga/timetravel/util"
 )
 
 // POST /records/{id}
@@ -20,8 +21,8 @@ func (a *API) PostRecords(w http.ResponseWriter, r *http.Request) {
 	idNumber, err := strconv.ParseInt(id, 10, 32)
 
 	if err != nil || idNumber <= 0 {
-		err := writeError(w, "invalid id; id must be a positive number", http.StatusBadRequest)
-		logError(err)
+		err := util.WriteError(w, "invalid id; id must be a positive number", http.StatusBadRequest)
+		util.LogError(err)
 		return
 	}
 
@@ -29,8 +30,8 @@ func (a *API) PostRecords(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&body)
 
 	if err != nil {
-		err := writeError(w, "invalid input; could not parse json", http.StatusBadRequest)
-		logError(err)
+		err := util.WriteError(w, "invalid input; could not parse json", http.StatusBadRequest)
+		util.LogError(err)
 		return
 	}
 
@@ -74,12 +75,12 @@ func (a *API) PostRecords(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		errInWriting := writeError(w, ErrInternal.Error(), http.StatusInternalServerError)
-		logError(err)
-		logError(errInWriting)
+		errInWriting := util.WriteError(w, util.ErrInternal.Error(), http.StatusInternalServerError)
+		util.LogError(err)
+		util.LogError(errInWriting)
 		return
 	}
 
-	err = writeJSON(w, record, http.StatusOK)
-	logError(err)
+	err = util.WriteJSON(w, record, http.StatusOK)
+	util.LogError(err)
 }

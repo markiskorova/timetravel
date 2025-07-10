@@ -1,20 +1,22 @@
 package entity
 
 type Record struct {
-	ID   int               `json:"id"`
-	Data map[string]string `json:"data"`
+	ID        int               `json:"id"`
+	Version   int               `json:"version"`
+	Timestamp string            `json:"timestamp"` // or time.Time
+	Data      map[string]string `json:"data"`
 }
 
-func (d *Record) Copy() Record {
-	values := d.Data
-
-	newMap := map[string]string{}
-	for key, value := range values {
+func (r *Record) Copy() Record {
+	newMap := make(map[string]string, len(r.Data))
+	for key, value := range r.Data {
 		newMap[key] = value
 	}
 
 	return Record{
-		ID:   d.ID,
-		Data: newMap,
+		ID:        r.ID,
+		Version:   r.Version,
+		Timestamp: r.Timestamp,
+		Data:      newMap,
 	}
 }
