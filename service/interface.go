@@ -11,6 +11,7 @@ var (
 	ErrRecordDoesNotExist    = errors.New("record with that id does not exist")
 	ErrRecordIDInvalid       = errors.New("record id must >= 0")
 	ErrRecordAlreadyExists   = errors.New("record already exists")
+	ErrFailedToReadData      = errors.New("failed to read data")
 	ErrFailedToOpenDatabase  = errors.New("failed to open SQLite database")
 	ErrFailedToReadSchema    = errors.New("failed to read schema file")
 	ErrFailedToExecuteSchema = errors.New("failed to execute schema SQL")

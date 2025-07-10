@@ -3,9 +3,12 @@ package service
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"os"
 
 	"github.com/rainbowmga/timetravel/entity"
+
+	_ "modernc.org/sqlite"
 )
 
 // SqLiteRecordService is an SqLite implementation of RecordService.
@@ -13,19 +16,20 @@ type SqLiteRecordService struct {
 	db *sql.DB
 }
 
-func NewSqLiteRecordService(dbPath string) (*SqLiteRecordService, error) {
+func NewSqLiteRecordService(dbPath string) (SqLiteRecordService, error) {
 	db, err := InitSQLiteDB(dbPath, "migrations/schema.sql")
 	if err != nil {
-		return nil, err
+		return SqLiteRecordService{}, err
 	}
-	return &SqLiteRecordService{db: db}, nil
+	return SqLiteRecordService{db: db}, nil
 }
 
 func InitSQLiteDB(dbPath string, schemaPath string) (*sql.DB, error) {
+
 	_, err := os.Stat(dbPath)
 	dbExists := !os.IsNotExist(err)
 
-	db, err := sql.Open("sqlite3", dbPath)
+	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		return nil, ErrFailedToOpenDatabase
 	}
@@ -49,9 +53,14 @@ func InitSQLiteDB(dbPath string, schemaPath string) (*sql.DB, error) {
 func (s *SqLiteRecordService) GetRecord(ctx context.Context, id int) (entity.Record, error) {
 	row := s.db.QueryRow("SELECT id, data FROM records WHERE id = ?", id)
 	var record entity.Record
-	err := row.Scan(&record.ID, &record.Data)
+	var dataJSON string
+	err := row.Scan(&record.ID, &dataJSON)
 	if err != nil {
 		return record, ErrRecordDoesNotExist
+	}
+	err = json.Unmarshal([]byte(dataJSON), &record.Data)
+	if err != nil {
+		return record, ErrFailedToReadData
 	}
 	return record, nil
 }
@@ -62,7 +71,8 @@ func (s *SqLiteRecordService) CreateRecord(ctx context.Context, record entity.Re
 		return ErrRecordIDInvalid
 	}
 
-	_, err := s.db.Exec("INSERT INTO records (id, data) VALUES (?, ?)", id, record.Data)
+	dataJSON, _ := json.Marshal(record.Data)
+	_, err := s.db.Exec("INSERT INTO records (id, data) VALUES (?, ?)", id, dataJSON)
 
 	return err
 }
@@ -73,7 +83,8 @@ func (s *SqLiteRecordService) UpdateRecord(ctx context.Context, record entity.Re
 		return ErrRecordIDInvalid
 	}
 
-	_, err := s.db.Exec("UPDATE records SET data=? WHERE id=", record.Data, id)
+	dataJSON, _ := json.Marshal(record.Data)
+	_, err := s.db.Exec("UPDATE records SET data=? WHERE id=", dataJSON, id)
 
 	return err
 }
